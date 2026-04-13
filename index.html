@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>June English - 词汇学习</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <header id="global-header" class="hidden sticky top-0 z-50 glass border-b p-4">
+        <div class="max-w-md mx-auto flex justify-between items-center text-sm">
+            <div class="flex flex-col">
+                <span class="text-gray-500">Lv. <span id="header-lv">1</span></span>
+                <span class="font-bold text-blue-600"><span id="header-points">0</span> PTS</span>
+            </div>
+            <div class="text-right">
+                <span id="header-name" class="font-medium">加载中...</span>
+                <div class="text-[10px] text-gray-400">ID: <span id="header-id">------</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 pb-24">
+
+        <section id="page-auth" class="page active pt-10">
+            <div class="bg-white p-8 rounded-3xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6 text-center">June English</h2>
+                <div class="space-y-4">
+                    <input id="auth-email" type="email" placeholder="邮箱" class="w-full p-3 border rounded-xl">
+                    <input id="auth-password" type="password" placeholder="密码" class="w-full p-3 border rounded-xl">
+                    <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold">登录</button>
+                    <button onclick="handleSignUp()" class="w-full bg-gray-100 text-gray-600 p-3 rounded-xl">注册</button>
+                    <p class="text-xs text-center text-gray-400">注意：注册后请检查垃圾邮件(Spam)激活账号</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-main" class="page space-y-6">
+            <h3 class="text-lg font-bold">选择难度等级</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="startQuiz('A1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">A1</button>
+                <button onclick="startQuiz('A2')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">A2</button>
+                <button onclick="startQuiz('B1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">B1</button>
+                <button onclick="startQuiz('B2')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">B2</button>
+                <button onclick="startQuiz('C1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">C1</button>
+                <button onclick="startQuiz('C2')" class="p-4 bg-red-50 text-red-600 font-bold rounded-2xl shadow-sm border border-red-100">C2</button>
+            </div>
+
+            <div id="quiz-container" class="hidden space-y-4 pt-4">
+                <div class="flex justify-between text-xs mb-1">
+                    <span>当前掌握进度</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <div class="bg-white p-10 rounded-3xl shadow-lg text-center">
+                    <div id="quiz-question" class="text-4xl font-bold mb-10">...</div>
+                    <div id="quiz-options" class="grid grid-cols-1 gap-3">
+                        </div>
+                    <button onclick="nextQuestion(0)" class="mt-8 text-sm text-gray-400 underline">不确认 (+0分)</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-account" class="page space-y-6">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="openModal('friends')" class="bg-white p-4 rounded-2xl shadow-sm border">添加好友</button>
+                <button onclick="openModal('ranking')" class="bg-white p-4 rounded-2xl shadow-sm border">排名榜单</button>
+            </div>
+            <div id="friend-section" class="bg-white rounded-2xl p-4 shadow-sm border">
+                <p class="text-gray-400 text-center text-sm">暂无好友动态</p>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="hidden fixed bottom-0 left-0 right-0 glass border-t flex justify-around p-3">
+        <button onclick="showPage('main')" class="nav-btn flex flex-col items-center text-blue-600">
+            <span class="text-xl">📖</span><span class="text-[10px]">Main</span>
+        </button>
+        <button onclick="showPage('account')" class="nav-btn flex flex-col items-center text-gray-400">
+            <span class="text-xl">👤</span><span class="text-[10px]">Account</span>
+        </button>
+    </nav>
+
+    <script>
+        // 1. 初始化 Supabase
+        const _supabase = supabase.createClient(
+            'https://mkfupwljhtzcfdlurjpz.supabase.co', 
+            'sb_publishable_30PwLvM7vK53d7RCF9Ef0A_hR9EvqmT'
+        );
+
+        let currentUser = null;
+        let currentQuizData = [];
+
+        // 2. 页面切换逻辑
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            
+            // 改变导航栏颜色
+            const btns = document.querySelectorAll('.nav-btn');
+            btns[0].style.color = pageId === 'main' ? '#2563eb' : '#9ca3af';
+            btns[1].style.color = pageId === 'account' ? '#2563eb' : '#9ca3af';
+        }
+
+        // 3. 登录与注册
+        async function handleLogin() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else onLoginSuccess(data.user);
+        }
+
+        async function handleSignUp() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const { data, error } = await _supabase.auth.signUp({ email, password });
+            if (error) alert(error.message);
+            else alert('验证邮件已发送，请检查收件箱(及垃圾箱)');
+        }
+
+        async function onLoginSuccess(user) {
+            currentUser = user;
+            document.getElementById('page-auth').classList.remove('active');
+            document.getElementById('global-header').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden');
+            showPage('main');
+            loadUserProfile();
+        }
+
+        // 4. 获取用户数据 (积分、名字、ID)
+        async function loadUserProfile() {
+            const { data, error } = await _supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (data) {
+                document.getElementById('header-name').innerText = data.display_name;
+                document.getElementById('header-id').innerText = data.numeric_id;
+                document.getElementById('header-points').innerText = data.points;
+            }
+        }
+
+        // 5. 核心：答题逻辑
+        async function startQuiz(level) {
+            document.getElementById('level-selection').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            
+            // 对接 Github Repository (需替换为你真实的URL)
+            const githubUrl = `https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/${level}.json`;
+            try {
+                const response = await fetch(githubUrl);
+                currentQuizData = await response.json();
+                renderQuestion();
+            } catch (e) {
+                alert("加载词库失败，请检查网络或路径");
+            }
+        }
+
+        function renderQuestion() {
+            if (currentQuizData.length === 0) return;
+            
+            // 随机抽题
+            const randomIndex = Math.floor(Math.random() * currentQuizData.length);
+            const item = currentQuizData[randomIndex]; // 假设结构为 { en: "buy", cn: "买", ms: "beli" }
+            
+            document.getElementById('quiz-question').innerText = item.en;
+            
+            // 生成干扰项 (此处简化逻辑，实际应从词库随机选)
+            const options = [item.cn, "干扰项1", "干扰项2", "干扰项3"].sort(() => Math.random() - 0.5);
+            
+            const optionsHtml = options.map(opt => `
+                <button onclick="checkAnswer('${opt}', '${item.cn}')" 
+                        class="p-4 border-2 border-gray-100 rounded-2xl hover:bg-blue-50 hover:border-blue-200 transition text-lg">
+                    ${opt}
+                </button>
+            `).join('');
+            
+            document.getElementById('quiz-options').innerHTML = optionsHtml;
+        }
+
+        async function checkAnswer(selected, correct) {
+            let scoreChange = (selected === correct) ? 5 : -2;
+            updatePoints(scoreChange);
+            renderQuestion(); // 继续下一题
+        }
+
+        async function updatePoints(change) {
+            // 这里写调用 Supabase .rpc() 或 .update() 的逻辑
+            console.log("分数变化:", change);
+            // 同步更新 Header UI...
+        }
+
+    </script>
+</body>
+</html>
