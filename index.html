@@ -3,206 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>June English - 词汇学习</title>
+    <title>JuneEnglish - 词汇学习</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .page { display: none; }
         .page.active { display: block; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen font-sans">
 
-    <header id="global-header" class="hidden sticky top-0 z-50 glass border-b p-4">
-        <div class="max-w-md mx-auto flex justify-between items-center text-sm">
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-gray-500">Lv. <span id="header-lv">1</span></span>
-                <span class="font-bold text-blue-600"><span id="header-points">0</span> PTS</span>
+                <span class="text-xs opacity-80">当前等级 / 积分</span>
+                <span class="font-bold text-lg"><i class="fas fa-medal"></i> <span id="display-level">A1</span> | <span id="display-points">0</span> pts</span>
             </div>
-            <div class="text-right">
-                <span id="header-name" class="font-medium">加载中...</span>
-                <div class="text-[10px] text-gray-400">ID: <span id="header-id">------</span></div>
-            </div>
+            <nav class="space-x-4">
+                <button onclick="showPage('main')" class="hover:text-blue-200 transition"><i class="fas fa-book"></i> Main</button>
+                <button onclick="showPage('account')" class="hover:text-blue-200 transition"><i class="fas fa-user-circle"></i> Account</button>
+            </nav>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-4 pb-24">
+    <main class="container mx-auto p-4 max-w-4xl">
+        
+        <section id="main-page" class="page active space-y-6">
+            <div id="level-selector" class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                <button onclick="startQuiz('A1')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">A1</button>
+                <button onclick="startQuiz('A2')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">A2</button>
+                <button onclick="startQuiz('B1')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">B1</button>
+                <button onclick="startQuiz('B2')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">B2</button>
+                <button onclick="startQuiz('C1')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">C1</button>
+                <button onclick="startQuiz('C2')" class="bg-white border-2 border-blue-500 text-blue-500 py-3 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition">C2</button>
+            </div>
 
-        <section id="page-auth" class="page active pt-10">
-            <div class="bg-white p-8 rounded-3xl shadow-xl">
-                <h2 class="text-2xl font-bold mb-6 text-center">June English</h2>
-                <div class="space-y-4">
-                    <input id="auth-email" type="email" placeholder="邮箱" class="w-full p-3 border rounded-xl">
-                    <input id="auth-password" type="password" placeholder="密码" class="w-full p-3 border rounded-xl">
-                    <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold">登录</button>
-                    <button onclick="handleSignUp()" class="w-full bg-gray-100 text-gray-600 p-3 rounded-xl">注册</button>
-                    <p class="text-xs text-center text-gray-400">注意：注册后请检查垃圾邮件(Spam)激活账号</p>
+            <div id="quiz-area" class="hidden glass-card p-6 rounded-2xl shadow-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="current-category" class="text-xl font-bold text-blue-600 underline">C2 Quiz</h2>
+                    <span id="progress-text" class="text-sm font-semibold text-gray-500 underline">进度: 0%</span>
+                </div>
+                
+                <div class="text-center mb-8">
+                    <p class="text-gray-500 mb-2">请选择正确意思：</p>
+                    <h1 id="question-word" class="text-4xl font-extrabold text-gray-800">Loading...</h1>
+                </div>
+
+                <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="handleAnswer(null)" class="w-full py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium italic">
+                        我不太确定 (+0分)
+                    </button>
+                    <button onclick="exitQuiz()" class="text-red-500 text-sm hover:underline">退出练习</button>
                 </div>
             </div>
         </section>
 
-        <section id="page-main" class="page space-y-6">
-            <h3 class="text-lg font-bold">选择难度等级</h3>
-            <div class="grid grid-cols-3 gap-3">
-                <button onclick="startQuiz('A1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">A1</button>
-                <button onclick="startQuiz('A2')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">A2</button>
-                <button onclick="startQuiz('B1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">B1</button>
-                <button onclick="startQuiz('B2')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">B2</button>
-                <button onclick="startQuiz('C1')" class="p-4 bg-white rounded-2xl shadow-sm border hover:border-blue-500 transition">C1</button>
-                <button onclick="startQuiz('C2')" class="p-4 bg-red-50 text-red-600 font-bold rounded-2xl shadow-sm border border-red-100">C2</button>
+        <section id="account-page" class="page space-y-6">
+            <div id="auth-box" class="glass-card p-8 rounded-2xl shadow-lg border text-center">
+                <h2 class="text-2xl font-bold mb-6">欢迎学习英语</h2>
+                <div class="space-y-4 max-w-sm mx-auto">
+                    <input type="email" id="email" placeholder="邮箱" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="password" id="password" placeholder="密码" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div class="flex gap-2">
+                        <button id="btn-login" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold">登录</button>
+                        <button id="btn-register" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold">注册</button>
+                    </div>
+                    <button id="btn-forget" class="text-blue-500 text-sm">忘记密码？(请检查垃圾邮件箱)</button>
+                </div>
             </div>
 
-            <div id="quiz-container" class="hidden space-y-4 pt-4">
-                <div class="flex justify-between text-xs mb-1">
-                    <span>当前掌握进度</span>
-                    <span id="progress-percent">0%</span>
+            <div id="profile-box" class="hidden space-y-6">
+                <div class="glass-card p-6 rounded-2xl shadow-md border flex items-center justify-between">
+                    <div>
+                        <h2 id="user-name" class="text-2xl font-bold text-gray-800">Loading...</h2>
+                        <p id="user-id" class="text-blue-500 font-mono">ID: #000000</p>
+                    </div>
+                    <button id="btn-logout" class="bg-red-50 text-red-500 p-2 rounded-full hover:bg-red-100 transition"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 0%"></div>
-                </div>
-                <div class="bg-white p-10 rounded-3xl shadow-lg text-center">
-                    <div id="quiz-question" class="text-4xl font-bold mb-10">...</div>
-                    <div id="quiz-options" class="grid grid-cols-1 gap-3">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border">
+                        <h3 class="font-bold mb-4 text-lg"><i class="fas fa-user-plus"></i> 添加好友</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="search-friend" placeholder="搜索名字或ID" class="flex-1 p-2 border rounded-lg text-sm">
+                            <button id="btn-search" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">搜索</button>
                         </div>
-                    <button onclick="nextQuestion(0)" class="mt-8 text-sm text-gray-400 underline">不确认 (+0分)</button>
+                        <div id="search-result" class="hidden p-3 bg-blue-50 rounded-lg flex items-center justify-between mb-4">
+                            <div>
+                                <span id="found-name" class="font-bold block text-sm"></span>
+                                <span id="found-id" class="text-xs text-gray-500"></span>
+                            </div>
+                            <button id="btn-add-confirm" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">添加</button>
+                        </div>
+                        <button class="w-full text-left p-3 text-sm border-t hover:bg-gray-50 flex justify-between items-center">
+                            <span>好友申请通知</span>
+                            <span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">2</span>
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl shadow-sm border flex flex-col justify-center gap-4">
+                        <button class="w-full bg-yellow-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-yellow-600 transition">
+                            <i class="fas fa-trophy"></i> 世界排行榜
+                        </button>
+                        <button class="w-full bg-indigo-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-600 transition">
+                            <i class="fas fa-users"></i> 好友排行榜
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
-
-        <section id="page-account" class="page space-y-6">
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="openModal('friends')" class="bg-white p-4 rounded-2xl shadow-sm border">添加好友</button>
-                <button onclick="openModal('ranking')" class="bg-white p-4 rounded-2xl shadow-sm border">排名榜单</button>
-            </div>
-            <div id="friend-section" class="bg-white rounded-2xl p-4 shadow-sm border">
-                <p class="text-gray-400 text-center text-sm">暂无好友动态</p>
-            </div>
-        </section>
-
     </main>
 
-    <nav id="bottom-nav" class="hidden fixed bottom-0 left-0 right-0 glass border-t flex justify-around p-3">
-        <button onclick="showPage('main')" class="nav-btn flex flex-col items-center text-blue-600">
-            <span class="text-xl">📖</span><span class="text-[10px]">Main</span>
-        </button>
-        <button onclick="showPage('account')" class="nav-btn flex flex-col items-center text-gray-400">
-            <span class="text-xl">👤</span><span class="text-[10px]">Account</span>
-        </button>
-    </nav>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    <script>
-        // 1. 初始化 Supabase
-        const _supabase = supabase.createClient(
-            'https://mkfupwljhtzcfdlurjpz.supabase.co', 
-            'sb_publishable_30PwLvM7vK53d7RCF9Ef0A_hR9EvqmT'
-        );
+        // 配置 (使用你提供的配置)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDP83fCrgigdbGuBZaUdken3C98ite_VVI",
+            authDomain: "juneenglish07-4fe11.firebaseapp.com",
+            projectId: "juneenglish07-4fe11",
+            storageBucket: "juneenglish07-4fe11.firebasestorage.app",
+            messagingSenderId: "186169420975",
+            appId: "1:186169420975:web:c3a29d1449a9920d9b785a",
+            measurementId: "G-62Y0N40KZZ"
+        };
 
-        let currentUser = null;
-        let currentQuizData = [];
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // 2. 页面切换逻辑
-        function showPage(pageId) {
+        // --- 核心变量 ---
+        let currentUserData = null;
+        let currentQuizPool = [];
+        let currentLevel = "A1";
+
+        // --- 页面路由逻辑 ---
+        window.showPage = (pageId) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-            
-            // 改变导航栏颜色
-            const btns = document.querySelectorAll('.nav-btn');
-            btns[0].style.color = pageId === 'main' ? '#2563eb' : '#9ca3af';
-            btns[1].style.color = pageId === 'account' ? '#2563eb' : '#9ca3af';
-        }
+            document.getElementById(`${pageId}-page`).classList.add('active');
+        };
 
-        // 3. 登录与注册
-        async function handleLogin() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) alert(error.message);
-            else onLoginSuccess(data.user);
-        }
-
-        async function handleSignUp() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const { data, error } = await _supabase.auth.signUp({ email, password });
-            if (error) alert(error.message);
-            else alert('验证邮件已发送，请检查收件箱(及垃圾箱)');
-        }
-
-        async function onLoginSuccess(user) {
-            currentUser = user;
-            document.getElementById('page-auth').classList.remove('active');
-            document.getElementById('global-header').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden');
-            showPage('main');
-            loadUserProfile();
-        }
-
-        // 4. 获取用户数据 (积分、名字、ID)
-        async function loadUserProfile() {
-            const { data, error } = await _supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
-            
-            if (data) {
-                document.getElementById('header-name').innerText = data.display_name;
-                document.getElementById('header-id').innerText = data.numeric_id;
-                document.getElementById('header-points').innerText = data.points;
+        // --- Firebase Auth 逻辑 ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('auth-box').classList.add('hidden');
+                document.getElementById('profile-box').classList.remove('hidden');
+                await syncUserData(user);
+            } else {
+                document.getElementById('auth-box').classList.remove('hidden');
+                document.getElementById('profile-box').classList.add('hidden');
+                resetUI();
             }
-        }
+        });
 
-        // 5. 核心：答题逻辑
-        async function startQuiz(level) {
-            document.getElementById('level-selection').classList.add('hidden');
-            document.getElementById('quiz-container').classList.remove('hidden');
-            
-            // 对接 Github Repository (需替换为你真实的URL)
-            const githubUrl = `https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/${level}.json`;
-            try {
-                const response = await fetch(githubUrl);
-                currentQuizData = await response.json();
-                renderQuestion();
-            } catch (e) {
-                alert("加载词库失败，请检查网络或路径");
+        async function syncUserData(user) {
+            const userRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userRef);
+
+            if (!docSnap.exists()) {
+                // 新用户：生成 100000+ ID
+                const newId = Math.floor(100000 + Math.random() * 900000);
+                currentUserData = {
+                    uid: user.uid,
+                    id: newId,
+                    name: user.email.split('@')[0],
+                    points: 0,
+                    progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 },
+                    mastered: []
+                };
+                await setDoc(userRef, currentUserData);
+            } else {
+                currentUserData = docSnap.data();
             }
+            updateHeader();
+            updateProfileUI();
         }
 
-        function renderQuestion() {
-            if (currentQuizData.length === 0) return;
-            
-            // 随机抽题
-            const randomIndex = Math.floor(Math.random() * currentQuizData.length);
-            const item = currentQuizData[randomIndex]; // 假设结构为 { en: "buy", cn: "买", ms: "beli" }
-            
-            document.getElementById('quiz-question').innerText = item.en;
-            
-            // 生成干扰项 (此处简化逻辑，实际应从词库随机选)
-            const options = [item.cn, "干扰项1", "干扰项2", "干扰项3"].sort(() => Math.random() - 0.5);
-            
-            const optionsHtml = options.map(opt => `
-                <button onclick="checkAnswer('${opt}', '${item.cn}')" 
-                        class="p-4 border-2 border-gray-100 rounded-2xl hover:bg-blue-50 hover:border-blue-200 transition text-lg">
-                    ${opt}
-                </button>
-            `).join('');
-            
-            document.getElementById('quiz-options').innerHTML = optionsHtml;
+        function updateHeader() {
+            document.getElementById('display-points').innerText = currentUserData.points;
+            // 简单等级逻辑：每1000分升一级，或手动逻辑
+            document.getElementById('display-level').innerText = calculateLevel(currentUserData.points);
         }
 
-        async function checkAnswer(selected, correct) {
-            let scoreChange = (selected === correct) ? 5 : -2;
-            updatePoints(scoreChange);
-            renderQuestion(); // 继续下一题
+        function updateProfileUI() {
+            document.getElementById('user-name').innerText = currentUserData.name;
+            document.getElementById('user-id').innerText = `ID: #${currentUserData.id}`;
         }
 
-        async function updatePoints(change) {
-            // 这里写调用 Supabase .rpc() 或 .update() 的逻辑
-            console.log("分数变化:", change);
-            // 同步更新 Header UI...
+        function calculateLevel(pts) {
+            if(pts < 500) return "A1";
+            if(pts < 1500) return "A2";
+            if(pts < 3000) return "B1";
+            return "B2+";
         }
 
+        // --- 测验逻辑 ---
+        window.startQuiz = async (category) => {
+            currentLevel = category;
+            document.getElementById('level-selector').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+            document.getElementById('current-category').innerText = `${category} Quiz`;
+            
+            // 模拟对接 Github (实际建议使用 fetch 你稍后生成的 JSON)
+            // fetch(`https://raw.githubusercontent.com/你的用户名/repo/main/${category}.json`)
+            // 这里暂用模拟数据演示逻辑
+            loadNextQuestion();
+        };
+
+        window.exitQuiz = () => {
+            document.getElementById('level-selector').classList.remove('hidden');
+            document.getElementById('quiz-area').classList.add('hidden');
+        };
+
+        function loadNextQuestion() {
+            // 这里的逻辑会在加载 JSON 后完善
+            document.getElementById('question-word').innerText = "Loading...";
+            // 逻辑：随机抽取一个词，生成4个错误选项+1个正确选项
+        }
+
+        window.handleAnswer = async (isCorrect) => {
+            let pointChange = 0;
+            if (isCorrect === true) pointChange = 5;
+            else if (isCorrect === false) pointChange = -2;
+            else pointChange = 0; // 不确定
+
+            if (auth.currentUser) {
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userRef, {
+                    points: increment(pointChange)
+                });
+                currentUserData.points += pointChange;
+                updateHeader();
+            }
+            loadNextQuestion();
+        };
+
+        // --- 登录注册事件监听 ---
+        document.getElementById('btn-login').onclick = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+        };
+
+        document.getElementById('btn-register').onclick = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+        };
+
+        document.getElementById('btn-forget').onclick = () => {
+            const e = document.getElementById('email').value;
+            if(!e) return alert("请先输入邮箱");
+            sendPasswordResetEmail(auth, e).then(() => alert("重置邮件已发送，请检查垃圾邮件箱")).catch(err => alert(err.message));
+        };
+
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+        function resetUI() {
+            document.getElementById('display-points').innerText = "0";
+            document.getElementById('display-level').innerText = "A1";
+        }
     </script>
 </body>
 </html>
