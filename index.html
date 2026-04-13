@@ -10,7 +10,8 @@
         .page { display: none; }
         .page.active { display: block; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        body { background-color: #f3f4f6; }
+        body { background-color: #f3f4f6; padding-bottom: 80px; } /* 为底部导航留空 */
+        @media (min-width: 768px) { body { padding-bottom: 0; padding-top: 20px; } }
     </style>
 </head>
 <body>
@@ -18,19 +19,24 @@
     <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-xs opacity-80">当前进度</span>
+                <span class="text-xs opacity-80" id="txt-progress-label">当前进度</span>
                 <span class="font-bold text-lg"><i class="fas fa-star text-yellow-300"></i> <span id="display-points">0</span> pts</span>
             </div>
-            <nav class="flex gap-6">
-                <button onclick="showPage('main')" class="hover:text-blue-200 flex flex-col items-center">
-                    <i class="fas fa-book"></i><span class="text-[10px]">学习</span>
-                </button>
-                <button onclick="showPage('account')" class="hover:text-blue-200 flex flex-col items-center">
-                    <i class="fas fa-user-circle"></i><span class="text-[10px]">账户</span>
-                </button>
+            <nav class="hidden md:flex gap-6">
+                <button onclick="showPage('main')" class="hover:text-blue-200">学习</button>
+                <button onclick="showPage('account')" class="hover:text-blue-200">账户</button>
             </nav>
         </div>
     </header>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-3 z-50 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="showPage('main')" class="flex flex-col items-center text-blue-600">
+            <i class="fas fa-book text-xl"></i><span class="text-xs mt-1">学习</span>
+        </button>
+        <button onclick="showPage('account')" class="flex flex-col items-center text-gray-400 hover:text-blue-600">
+            <i class="fas fa-user-circle text-xl"></i><span class="text-xs mt-1">账户</span>
+        </button>
+    </nav>
 
     <main class="container mx-auto p-4 max-w-2xl">
         
@@ -47,22 +53,21 @@
             <div id="quiz-area" class="hidden glass-card p-6 rounded-3xl shadow-xl border border-gray-200">
                 <div class="flex justify-between items-center mb-6">
                     <span id="quiz-level-tag" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase">C2 Level</span>
-                    <span id="progress-percent" class="text-sm font-bold text-gray-400">掌握度: 0%</span>
+                    <span id="progress-percent" class="text-sm font-bold text-gray-400 tracking-tight">掌握度: 0%</span>
                 </div>
                 
                 <div class="text-center mb-8">
                     <h1 id="question-word" class="text-4xl font-black text-gray-800 tracking-tight">---</h1>
-                    <p class="text-gray-400 mt-2 text-sm">请选择正确意思：</p>
+                    <p id="txt-instruction" class="text-gray-400 mt-2 text-sm">请选择正确意思：</p>
                 </div>
 
-                <div id="options-grid" class="grid grid-cols-1 gap-3">
-                    </div>
+                <div id="options-grid" class="grid grid-cols-1 gap-3"></div>
 
                 <div class="mt-6 pt-4 border-t border-dashed flex flex-col gap-3">
-                    <button onclick="handleAnswer(null)" class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200 transition font-medium italic">
+                    <button onclick="handleAnswer(null)" id="btn-unsure" class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200 transition font-medium italic">
                         我不太确定 (+0分)
                     </button>
-                    <button onclick="exitQuiz()" class="text-center text-red-400 text-sm font-medium py-2">退出本级练习</button>
+                    <button onclick="exitQuiz()" id="btn-exit" class="text-center text-red-400 text-sm font-medium py-2">退出本级练习</button>
                 </div>
             </div>
         </section>
@@ -74,8 +79,8 @@
                     <input type="email" id="email" placeholder="邮箱" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400 transition">
                     <input type="password" id="password" placeholder="密码" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400 transition">
                     <div class="flex gap-2">
-                        <button id="btn-login" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition">登录</button>
-                        <button id="btn-register" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition">注册</button>
+                        <button id="btn-login" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold active:scale-95 transition">登录</button>
+                        <button id="btn-register" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold active:scale-95 transition">注册</button>
                     </div>
                     <button id="btn-forget" class="w-full text-blue-500 text-sm">忘记密码？</button>
                 </div>
@@ -84,10 +89,21 @@
             <div id="profile-box" class="hidden space-y-4">
                 <div class="glass-card p-6 rounded-3xl shadow-sm border flex items-center justify-between">
                     <div>
-                        <h2 id="user-name" class="text-xl font-bold">---</h2>
+                        <h2 id="user-name" class="text-xl font-bold text-gray-800">---</h2>
                         <p id="user-id" class="text-blue-500 font-mono text-sm">ID: #000000</p>
                     </div>
                     <button id="btn-logout" class="text-gray-400 hover:text-red-500 transition text-xl"><i class="fas fa-power-off"></i></button>
+                </div>
+
+                <div class="glass-card p-6 rounded-3xl shadow-sm border">
+                    <h3 class="font-bold mb-3 text-sm flex items-center gap-2"><i class="fas fa-cog"></i> 偏好设置</h3>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                        <span class="text-sm font-medium">翻译显示语言</span>
+                        <select id="lang-setting" class="bg-transparent text-blue-600 font-bold outline-none text-sm">
+                            <option value="cn">中文 (CN)</option>
+                            <option value="ms">马来文 (MS)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="glass-card p-6 rounded-3xl shadow-sm border">
@@ -103,8 +119,8 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <button class="bg-yellow-500 text-white p-4 rounded-2xl font-bold shadow-md"><i class="fas fa-globe"></i> 世界排名</button>
-                    <button class="bg-indigo-500 text-white p-4 rounded-2xl font-bold shadow-md"><i class="fas fa-user-friends"></i> 好友排名</button>
+                    <button class="bg-yellow-500 text-white p-4 rounded-2xl font-bold shadow-md active:scale-95 transition"><i class="fas fa-globe"></i> 世界排名</button>
+                    <button class="bg-indigo-500 text-white p-4 rounded-2xl font-bold shadow-md active:scale-95 transition"><i class="fas fa-user-friends"></i> 好友排名</button>
                 </div>
             </div>
         </section>
@@ -129,74 +145,96 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 数据状态
         let userData = null;
         let pool = []; 
         let currentLvl = "";
-        let masteredInSession = new Set();
+        let currentLang = "cn"; // 默认中文
 
         // 页面切换
         window.showPage = (id) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id + '-page').classList.add('active');
+            
+            // 切换导航栏图标高亮状态
+            const navBtns = document.querySelectorAll('nav button');
+            navBtns.forEach(btn => {
+                if(btn.getAttribute('onclick')?.includes(id)) {
+                    btn.classList.add('text-blue-600'); btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('text-blue-600'); btn.classList.add('text-gray-400');
+                }
+            });
         };
 
-        // 监听登录状态
+        // 核心登录逻辑优化
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const docRef = doc(db, "users", user.uid);
-                const snap = await getDoc(docRef);
+                let snap = await getDoc(docRef);
+                
+                // 解决注册后立即登录找不到文档的问题
                 if (!snap.exists()) {
                     const newId = Math.floor(100000 + Math.random() * 900000);
-                    userData = { uid: user.uid, id: newId, name: user.email.split('@')[0], points: 0, mastered: {} };
+                    userData = { uid: user.uid, id: newId, name: user.email.split('@')[0], points: 0, mastered: {}, lang: "cn" };
                     await setDoc(docRef, userData);
                 } else {
                     userData = snap.data();
                 }
+                
+                currentLang = userData.lang || "cn";
+                document.getElementById('lang-setting').value = currentLang;
                 updateUI();
                 document.getElementById('auth-box').classList.add('hidden');
                 document.getElementById('profile-box').classList.remove('hidden');
             } else {
                 document.getElementById('auth-box').classList.remove('hidden');
                 document.getElementById('profile-box').classList.add('hidden');
-                document.getElementById('display-points').innerText = "0";
             }
         });
 
         function updateUI() {
+            if(!userData) return;
             document.getElementById('display-points').innerText = userData.points;
             document.getElementById('user-name').innerText = userData.name;
             document.getElementById('user-id').innerText = `ID: #${userData.id}`;
         }
 
-        // 核心测验逻辑
+        // 切换语言设置
+        document.getElementById('lang-setting').onchange = async (e) => {
+            currentLang = e.target.value;
+            if(auth.currentUser) {
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { lang: currentLang });
+            }
+        };
+
+        // 测验逻辑
         window.startQuiz = async (lvl) => {
             currentLvl = lvl;
-            // 重要：请将此URL替换为您GitHub上的真实地址
             const url = `https://raw.githubusercontent.com/你的用户名/你的仓库/main/${lvl}.json`;
-            
             try {
                 const res = await fetch(url);
                 pool = await res.json();
-                masteredInSession.clear();
                 document.getElementById('level-selector').classList.add('hidden');
                 document.getElementById('quiz-area').classList.remove('hidden');
                 document.getElementById('quiz-level-tag').innerText = `${lvl} Level`;
                 loadQuestion();
             } catch (e) {
-                alert("词库加载失败，请检查网络或JSON路径");
+                alert("词库加载失败");
             }
         };
 
         function loadQuestion() {
+            if(!pool.length) return;
             const target = pool[Math.floor(Math.random() * pool.length)];
             document.getElementById('question-word').innerText = target.en;
             
-            // 混合答案
-            let options = [{ text: `${target.cn} / ${target.ms}`, correct: true }];
+            // 根据语言偏好获取翻译
+            const getTrans = (item) => currentLang === "cn" ? item.cn : item.ms;
+
+            let options = [{ text: getTrans(target), correct: true }];
             while(options.length < 4) {
                 let r = pool[Math.floor(Math.random() * pool.length)];
-                let txt = `${r.cn} / ${r.ms}`;
+                let txt = getTrans(r);
                 if(!options.find(o => o.text === txt)) options.push({ text: txt, correct: false });
             }
             options.sort(() => Math.random() - 0.5);
@@ -205,29 +243,15 @@
             grid.innerHTML = '';
             options.forEach(opt => {
                 const b = document.createElement('button');
-                b.className = "w-full p-4 bg-white border-2 border-gray-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50 transition font-medium shadow-sm";
+                b.className = "w-full p-4 bg-white border-2 border-gray-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50 transition font-medium shadow-sm active:scale-95";
                 b.innerText = opt.text;
-                b.onclick = () => handleAnswer(opt.correct, target.en);
+                b.onclick = () => handleAnswer(opt.correct);
                 grid.appendChild(b);
             });
-
-            // 计算进度
-            const total = pool.length;
-            const masteredCount = (userData.mastered && userData.mastered[currentLvl]) ? userData.mastered[currentLvl].length : 0;
-            const percent = Math.floor((masteredCount / total) * 100);
-            document.getElementById('progress-percent').innerText = `掌握度: ${percent}%`;
         }
 
-        window.handleAnswer = async (correct, word) => {
-            let score = 0;
-            if(correct === true) {
-                score = 5;
-                if(!masteredInSession.has(word)) masteredInSession.add(word);
-                // 记录掌握逻辑可在退出时统一同步或即时同步
-            } else if(correct === false) {
-                score = -2;
-            }
-
+        window.handleAnswer = async (correct) => {
+            let score = correct === true ? 5 : (correct === false ? -2 : 0);
             if(auth.currentUser) {
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 await updateDoc(userRef, { points: increment(score) });
@@ -242,42 +266,36 @@
             document.getElementById('quiz-area').classList.add('hidden');
         };
 
-        // 按钮事件
+        // Firebase Auth 行为
         document.getElementById('btn-login').onclick = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(a => alert("错误: " + a.message));
+            signInWithEmailAndPassword(auth, e, p).catch(a => alert("登录失败: " + a.message));
         };
 
         document.getElementById('btn-register').onclick = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            createUserWithEmailAndPassword(auth, e, p).then(() => alert("注册成功！")).catch(a => alert(a.message));
-        };
-
-        document.getElementById('btn-forget').onclick = () => {
-            const e = document.getElementById('email').value;
-            if(!e) return alert("请输入邮箱");
-            sendPasswordResetEmail(auth, e).then(() => alert("重置链接已发送，请检查垃圾箱"));
+            createUserWithEmailAndPassword(auth, e, p).then(() => alert("注册并自动登录成功！")).catch(a => alert(a.message));
         };
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
+        document.getElementById('btn-forget').onclick = () => {
+            const e = document.getElementById('email').value;
+            if(e) sendPasswordResetEmail(auth, e).then(() => alert("已发送"));
+        };
 
-        // 好友搜索逻辑
+        // 搜索好友
         document.getElementById('btn-search').onclick = async () => {
             const val = document.getElementById('search-friend').value;
             if(!val) return;
             const q = query(collection(db, "users"), where("id", "==", parseInt(val)));
             const snap = await getDocs(q);
-            const resBox = document.getElementById('search-result');
             if(!snap.empty) {
                 const found = snap.docs[0].data();
                 document.getElementById('found-info').innerText = `${found.name} (#${found.id})`;
-                resBox.classList.remove('hidden');
-            } else {
-                alert("未找到该用户");
-                resBox.classList.add('hidden');
-            }
+                document.getElementById('search-result').classList.remove('hidden');
+            } else { alert("未找到用户"); }
         };
     </script>
 </body>
