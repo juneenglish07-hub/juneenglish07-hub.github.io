@@ -1,324 +1,755 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JuneEnglish - 词汇学习系统</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>June English - Vocabulary Learning</title>
+    <link rel="icon" type="image/png" href="juneenglish.png">
+    <link rel="apple-touch-icon" href="juneenglish.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        .page { display: none; }
-        .page.active { display: block; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        body { background-color: #f3f4f6; padding-bottom: 90px; }
-        @media (min-width: 768px) { body { padding-bottom: 0; padding-top: 20px; } }
-        .rank-gold { background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding-bottom: 80px;
+        }
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .header {
+            background: white;
+            border-radius: 2rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .level-score {
+            display: flex;
+            gap: 1.5rem;
+            background: #f1f5f9;
+            padding: 0.5rem 1.2rem;
+            border-radius: 3rem;
+        }
+        .level-score span {
+            font-weight: 600;
+        }
+        .level-badge {
+            background: #3b82f6;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+        }
+        .score-badge {
+            background: #10b981;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+        }
+        .category-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        .cat-btn {
+            background: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .cat-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .quiz-panel {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+        }
+        .question-word {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .opt-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .opt-btn:hover:not(:disabled) {
+            background: #eef2ff;
+            border-color: #3b82f6;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .unsure-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.7rem 1.8rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .next-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .progress-text {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.7rem 1rem;
+            border-top: 1px solid #e2e8f0;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: 0.2s;
+            gap: 4px;
+        }
+        .nav-item i {
+            font-size: 1.5rem;
+        }
+        .nav-item.active {
+            color: #3b82f6;
+        }
+        .account-card, .rank-card, .friends-section {
+            background: white;
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        input, .search-input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0.2rem;
+        }
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.7rem 0;
+        }
+        .small-btn {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+        }
+        .rank-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .rank-table th, .rank-table td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            z-index: 200;
+        }
+        @media (max-width: 640px) {
+            .question-word { font-size: 1.8rem; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            max-width: 90%;
+            width: 400px;
+            max-height: 70vh;
+            overflow: auto;
+        }
     </style>
 </head>
 <body>
+<div class="app-container" id="appContainer">
+    <div id="mainView"></div>
+</div>
+<div class="bottom-nav" id="bottomNav">
+    <button class="nav-item" data-nav="main"><i class="fas fa-book-open"></i><span>Main</span></button>
+    <button class="nav-item" data-nav="rank"><i class="fas fa-trophy"></i><span>Rank</span></button>
+    <button class="nav-item" data-nav="account"><i class="fas fa-user-circle"></i><span>Account</span></button>
+</div>
 
-    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex flex-col">
-                <span class="text-xs opacity-80">当前进度</span>
-                <span class="font-bold text-lg"><i class="fas fa-star text-yellow-300"></i> <span id="display-points">0</span> pts</span>
-            </div>
-            <nav class="hidden md:flex gap-6">
-                <button onclick="showPage('main')" class="hover:text-blue-200">LEARNING</button>
-                <button onclick="showPage('ranking')" class="hover:text-blue-200">RANKING</button>
-                <button onclick="showPage('account')" class="hover:text-blue-200">ACCOUNT</button>
-            </nav>
-        </div>
-    </header>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, limit, arrayUnion, arrayRemove, increment, writeBatch } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-3 z-50 md:hidden shadow-lg">
-        <button onclick="showPage('main')" id="nav-main" class="flex flex-col items-center text-blue-600 transition">
-            <i class="fas fa-book text-xl"></i><span class="text-[10px] mt-1 font-bold">LEARNING</span>
-        </button>
-        <button onclick="showPage('ranking')" id="nav-ranking" class="flex flex-col items-center text-gray-400 transition">
-            <i class="fas fa-trophy text-xl"></i><span class="text-[10px] mt-1 font-bold">RANKING</span>
-        </button>
-        <button onclick="showPage('account')" id="nav-account" class="flex flex-col items-center text-gray-400 transition">
-            <i class="fas fa-user-circle text-xl"></i><span class="text-[10px] mt-1 font-bold">ACCOUNT</span>
-        </button>
-    </nav>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDP83fCrgigdbGuBZaUdken3C98ite_VVI",
+        authDomain: "juneenglish07-4fe11.firebaseapp.com",
+        projectId: "juneenglish07-4fe11",
+        storageBucket: "juneenglish07-4fe11.firebasestorage.app",
+        messagingSenderId: "186169420975",
+        appId: "1:186169420975:web:c3a29d1449a9920d9b785a",
+        measurementId: "G-62Y0N40KZZ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth();
+    const db = getFirestore();
 
-    <main class="container mx-auto p-4 max-w-2xl">
-        
-        <section id="main-page" class="page active space-y-6">
-            <div id="level-selector" class="grid grid-cols-3 gap-3">
-                <button onclick="startQuiz('A1')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">A1</button>
-                <button onclick="startQuiz('A2')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">A2</button>
-                <button onclick="startQuiz('B1')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">B1</button>
-                <button onclick="startQuiz('B2')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">B2</button>
-                <button onclick="startQuiz('C1')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">C1</button>
-                <button onclick="startQuiz('C2')" class="bg-white border-2 border-blue-500 text-blue-500 py-4 rounded-2xl font-black shadow-sm">C2</button>
-            </div>
+    let currentUserObj = null;
+    let userProfile = null;
+    let currentLevel = "C2";
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let currentQuizActive = false;
+    let currentQuestionObj = null;
+    let currentOptions = [];
+    let waitingForNext = false;
+    let currentProgressPercent = 0;
+    let currentLevelTotal = 0;
+    let currentLevelLearnedSet = new Set();
+    let currentNav = "main";
+    
+    const levelDataCache = new Map();
 
-            <div id="quiz-area" class="hidden glass-card p-6 rounded-3xl shadow-xl border">
-                <div class="flex justify-between items-center mb-6">
-                    <span id="quiz-level-tag" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase">Level</span>
-                    <span id="progress-percent" class="text-sm font-bold text-gray-400">掌握度: 0%</span>
-                </div>
-                <div class="text-center mb-8">
-                    <h1 id="question-word" class="text-4xl font-black text-gray-800 tracking-tight">---</h1>
-                    <p class="text-gray-400 mt-2 text-sm">选择正确选项：</p>
-                </div>
-                <div id="options-grid" class="grid grid-cols-1 gap-3"></div>
-                <div class="mt-6 pt-4 border-t border-dashed flex flex-col gap-2">
-                    <button onclick="handleAnswer(null)" class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl italic">跳过 (+0 pts)</button>
-                    <button onclick="exitQuiz()" class="text-center text-red-400 text-sm py-2">退出练习</button>
-                </div>
-            </div>
-        </section>
+    function showToast(msg) {
+        let toast = document.createElement('div');
+        toast.className = 'toast-msg';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
 
-        <section id="ranking-page" class="page space-y-4">
-            <div class="glass-card p-6 rounded-3xl shadow-md border">
-                <div class="flex justify-around mb-6 border-b pb-2">
-                    <button onclick="switchRank('world')" id="tab-world" class="pb-2 px-4 border-b-2 border-blue-600 font-bold text-blue-600">世界排名</button>
-                    <button onclick="switchRank('friends')" id="tab-friends" class="pb-2 px-4 border-b-2 border-transparent text-gray-400 font-bold">好友动态</button>
-                </div>
+    async function fetchLevelJSON(level) {
+        if (levelDataCache.has(level)) return levelDataCache.get(level);
+        const rawUrl = `https://raw.githubusercontent.com/juneenglish07/juneenglish07/main/${level}.json`;
+        try {
+            const res = await fetch(rawUrl);
+            if (!res.ok) throw new Error("fetch failed");
+            const data = await res.json();
+            levelDataCache.set(level, data);
+            return data;
+        } catch(e) {
+            console.warn(e);
+            if(level === "C2") return [
+                {"en":"abnegation","cn":"克制 / 自制","ms":"pengorbanan diri / penafian diri"},
+                {"en":"bellicose","cn":"好战的 / 好斗的","ms":"suka berkelahi / agresif"},
+                {"en":"chicanery","cn":"诡计 / 狡诈","ms":"tipu daya / helah"},
+                {"en":"deleterious","cn":"有害的","ms":"berbahaya / memudaratkan"},
+                {"en":"enervate","cn":"使衰弱 / 使失去活力","ms":"melemahkan"},
+                {"en":"facetious","cn":"滑稽的 / 乱开玩笑的","ms":"lucu / berjenaka pada waktu yang salah"},
+                {"en":"garrulous","cn":"饶舌的 / 喋喋不休的","ms":"becok / suka bercakap"},
+                {"en":"harangue","cn":"热烈的演说 / 斥责","ms":"syarahan yang berapi-api"}
+            ];
+            return [];
+        }
+    }
 
-                <div id="rank-content" class="space-y-3">
-                    <div class="text-center py-10 text-gray-400">正在加载排行...</div>
-                </div>
-
-                <div id="my-rank-pos" class="mt-6 pt-4 border-t hidden">
-                    <div class="bg-blue-50 p-4 rounded-2xl flex justify-between items-center">
-                        <span class="font-bold text-blue-600">我的实时名次:</span>
-                        <span id="my-pts-display" class="font-black text-blue-800">--- pts</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="account-page" class="page space-y-4">
-            <div id="auth-box" class="glass-card p-8 rounded-3xl shadow-lg border">
-                <h2 class="text-2xl font-bold mb-6 text-center">用户登录</h2>
-                <div class="space-y-4">
-                    <input type="email" id="email" placeholder="邮箱" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-                    <input type="password" id="password" placeholder="密码" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-                    <div class="flex gap-2">
-                        <button id="btn-login" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold">登录</button>
-                        <button id="btn-register" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold">注册</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="profile-box" class="hidden space-y-4">
-                <div class="glass-card p-6 rounded-3xl shadow-sm border flex items-center justify-between">
-                    <div>
-                        <h2 id="user-name" class="text-xl font-bold">---</h2>
-                        <p id="user-id" class="text-blue-500 font-mono text-sm">ID: #000000</p>
-                    </div>
-                    <button id="btn-logout" class="text-gray-400 hover:text-red-500 text-xl"><i class="fas fa-power-off"></i></button>
-                </div>
-                
-                <div class="glass-card p-6 rounded-3xl shadow-sm border">
-                    <h3 class="font-bold mb-3 text-sm">语言设置</h3>
-                    <select id="lang-setting" class="w-full p-3 bg-gray-50 border rounded-xl">
-                        <option value="cn">中文 (CN)</option>
-                        <option value="ms">Malay (MS)</option>
-                    </select>
-                </div>
-
-                <div class="glass-card p-6 rounded-3xl border">
-                    <h3 class="font-bold mb-3 text-sm">社交</h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="search-friend" placeholder="输入ID搜索用户" class="flex-1 p-3 bg-gray-50 border rounded-xl text-sm">
-                        <button id="btn-search" class="bg-blue-600 text-white px-5 rounded-xl text-sm font-bold">搜索</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDP83fCrgigdbGuBZaUdken3C98ite_VVI",
-            authDomain: "juneenglish07-4fe11.firebaseapp.com",
-            projectId: "juneenglish07-4fe11",
-            storageBucket: "juneenglish07-4fe11.firebasestorage.app",
-            messagingSenderId: "186169420975",
-            appId: "1:186169420975:web:c3a29d1449a9920d9b785a"
+    async function updateProgressForLevel(level, learnedEnSet) {
+        if (!userProfile) return;
+        const total = currentLevelTotal;
+        const learnedCount = learnedEnSet.size;
+        const percent = total === 0 ? 0 : Math.floor((learnedCount / total) * 100);
+        currentProgressPercent = percent;
+        if (!userProfile.progress) userProfile.progress = {};
+        userProfile.progress[level] = {
+            learned: Array.from(learnedEnSet),
+            total: total,
+            percent: percent
         };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let userData = null;
-        let pool = [];
-        let currentLang = "cn";
-
-        // 导航切换
-        window.showPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id + '-page').classList.add('active');
-            
-            // 底部图标激活状态
-            const iconIds = ['nav-main', 'nav-ranking', 'nav-account'];
-            iconIds.forEach(iconId => {
-                const el = document.getElementById(iconId);
-                if(iconId.includes(id)) {
-                    el.classList.add('text-blue-600'); el.classList.remove('text-gray-400');
-                } else {
-                    el.classList.remove('text-blue-600'); el.classList.add('text-gray-400');
-                }
+        if (currentUserObj) {
+            const userRef = doc(db, "users", currentUserObj.uid);
+            await updateDoc(userRef, {
+                [`progress.${level}`]: userProfile.progress[level]
             });
+        }
+        renderMainQuizArea();
+    }
 
-            if(id === 'ranking') loadWorldRanking();
-        };
+    async function loadLevelAndStart(level) {
+        currentLevel = level;
+        const data = await fetchLevelJSON(level);
+        if (!data || data.length === 0) {
+            showToast("Failed to load vocabulary data");
+            return;
+        }
+        currentQuestions = data;
+        currentLevelTotal = data.length;
+        let learnedList = [];
+        if (userProfile && userProfile.progress && userProfile.progress[level]) {
+            learnedList = userProfile.progress[level].learned || [];
+        }
+        currentLevelLearnedSet = new Set(learnedList);
+        updateProgressForLevel(level, currentLevelLearnedSet);
+        currentQuizActive = true;
+        waitingForNext = false;
+        pickNewQuestion();
+        renderMainQuizArea();
+        renderHeaderInfo();
+    }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const docRef = doc(db, "users", user.uid);
-                let snap = await getDoc(docRef);
-                if (!snap.exists()) {
-                    userData = { uid: user.uid, id: Math.floor(100000+Math.random()*900000), name: user.email.split('@')[0], points: 0, lang: "cn" };
-                    await setDoc(docRef, userData);
-                } else {
-                    userData = snap.data();
-                }
-                currentLang = userData.lang || "cn";
-                document.getElementById('display-points').innerText = userData.points;
-                document.getElementById('user-name').innerText = userData.name;
-                document.getElementById('user-id').innerText = `ID: #${userData.id}`;
-                document.getElementById('auth-box').classList.add('hidden');
-                document.getElementById('profile-box').classList.remove('hidden');
-            } else {
-                document.getElementById('auth-box').classList.remove('hidden');
-                document.getElementById('profile-box').classList.add('hidden');
-                document.getElementById('display-points').innerText = "0";
+    function pickNewQuestion() {
+        if (!currentQuestions.length) return;
+        const randomIndex = Math.floor(Math.random() * currentQuestions.length);
+        currentQuestionObj = { ...currentQuestions[randomIndex] };
+        const correctMeaning = getCorrectMeaning(currentQuestionObj);
+        const otherMeanings = [];
+        const otherWords = currentQuestions.filter(w => w.en !== currentQuestionObj.en);
+        for (let i = 0; i < Math.min(3, otherWords.length); i++) {
+            const rand = otherWords[Math.floor(Math.random() * otherWords.length)];
+            otherMeanings.push(getCorrectMeaning(rand));
+        }
+        let opts = [correctMeaning, ...otherMeanings];
+        opts = [...new Set(opts)];
+        while(opts.length < 4) opts.push("???");
+        opts = opts.sort(() => Math.random() - 0.5);
+        currentOptions = opts.slice(0, 4);
+        waitingForNext = false;
+    }
+    
+    function getCorrectMeaning(word) {
+        // Randomly return Chinese or Malay as the answer option
+        const r = Math.random() < 0.5 ? word.cn : word.ms;
+        return r;
+    }
+
+    async function handleAnswer(selectedMeaning) {
+        if (waitingForNext || !currentQuizActive) return;
+        waitingForNext = true;
+        const correctMeaning = getCorrectMeaning(currentQuestionObj);
+        const isCorrect = (selectedMeaning === correctMeaning);
+        let pointsChange = 0;
+        let wasLearnedBefore = currentLevelLearnedSet.has(currentQuestionObj.en);
+        
+        if (isCorrect) {
+            pointsChange = 5;
+            if (!wasLearnedBefore) {
+                currentLevelLearnedSet.add(currentQuestionObj.en);
+                await updateProgressForLevel(currentLevel, currentLevelLearnedSet);
+            }
+        } else if (selectedMeaning === "unsure") {
+            pointsChange = 0;
+        } else {
+            pointsChange = -2;
+        }
+        
+        if (userProfile && pointsChange !== 0) {
+            const newScore = (userProfile.score || 0) + pointsChange;
+            userProfile.score = newScore;
+            if (currentUserObj) {
+                const userRef = doc(db, "users", currentUserObj.uid);
+                await updateDoc(userRef, { score: newScore });
+            }
+            renderHeaderInfo();
+        }
+        
+        if (isCorrect) showToast(`✅ +5 points! Mastered "${currentQuestionObj.en}"`);
+        else if (selectedMeaning === "unsure") showToast(`🤔 Skipped, 0 points`);
+        else showToast(`❌ -2 points! Correct answer: ${correctMeaning}`);
+        
+        pickNewQuestion();
+        renderMainQuizArea();
+    }
+
+    function renderHeaderInfo() {
+        const headerDiv = document.querySelector('.header');
+        if (headerDiv && userProfile) {
+            headerDiv.innerHTML = `<div class="level-score"><span>📚 Level: <strong>${currentLevel}</strong></span><span>⭐ Score: ${userProfile.score || 0}</span></div><div><i class="fas fa-graduation-cap"></i> June English</div>`;
+        } else if(headerDiv){
+            headerDiv.innerHTML = `<div>Loading...</div>`;
+        }
+    }
+
+    function renderMainQuizArea() {
+        const mainDiv = document.getElementById("mainView");
+        if (!mainDiv) return;
+        if (!currentQuizActive || !userProfile) {
+            mainDiv.innerHTML = `<div class="quiz-panel"><div class="loading">Please select a level to start learning</div></div>`;
+            return;
+        }
+        const progressWidth = currentProgressPercent || 0;
+        const questionText = currentQuestionObj ? currentQuestionObj.en : "Loading...";
+        const optionsHtml = currentOptions.map(opt => `<button class="opt-btn" data-opt="${opt.replace(/"/g, '&quot;')}">${opt}</button>`).join('');
+        mainDiv.innerHTML = `
+            <div class="category-row" id="categoryRow">
+                <button class="cat-btn ${currentLevel === 'A1' ? 'active' : ''}" data-level="A1">A1</button>
+                <button class="cat-btn ${currentLevel === 'A2' ? 'active' : ''}" data-level="A2">A2</button>
+                <button class="cat-btn ${currentLevel === 'B1' ? 'active' : ''}" data-level="B1">B1</button>
+                <button class="cat-btn ${currentLevel === 'B2' ? 'active' : ''}" data-level="B2">B2</button>
+                <button class="cat-btn ${currentLevel === 'C1' ? 'active' : ''}" data-level="C1">C1</button>
+                <button class="cat-btn ${currentLevel === 'C2' ? 'active' : ''}" data-level="C2">C2</button>
+            </div>
+            <div class="quiz-panel">
+                <div class="question-word">${questionText}</div>
+                <div class="options-grid" id="optionsGrid">
+                    ${optionsHtml}
+                </div>
+                <div class="action-buttons">
+                    <button class="unsure-btn" id="unsureBtn">❓ Not Sure</button>
+                </div>
+                <div class="progress-text">📊 ${currentLevel} Progress: ${progressWidth}% (${currentLevelLearnedSet.size}/${currentLevelTotal} words mastered)</div>
+            </div>
+        `;
+        document.querySelectorAll('.opt-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const val = btn.getAttribute('data-opt');
+                handleAnswer(val);
+            });
+        });
+        document.getElementById('unsureBtn')?.addEventListener('click', () => handleAnswer("unsure"));
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const level = btn.getAttribute('data-level');
+                if (level === currentLevel) return;
+                await loadLevelAndStart(level);
+            });
+        });
+    }
+
+    function renderMainLayout() {
+        const container = document.getElementById("appContainer");
+        container.innerHTML = `<div class="header" id="dynamicHeader"></div><div id="mainView"></div>`;
+        renderHeaderInfo();
+        if (!currentQuizActive && userProfile) {
+            loadLevelAndStart("C2");
+        } else if (userProfile) {
+            renderMainQuizArea();
+        }
+    }
+
+    async function renderAccountView() {
+        if (!userProfile || !currentUserObj) {
+            showToast("Please login first");
+            return;
+        }
+        const friendsIds = userProfile.friends || [];
+        let friendsData = [];
+        for (let fid of friendsIds) {
+            const friendRef = doc(db, "users", fid);
+            const snap = await getDoc(friendRef);
+            if(snap.exists()) friendsData.push({uid:fid, ...snap.data()});
+        }
+        const pendingRequests = userProfile.friendRequests || [];
+        let pendingUsers = [];
+        for (let reqUid of pendingRequests) {
+            const snap = await getDoc(doc(db, "users", reqUid));
+            if(snap.exists()) pendingUsers.push({uid:reqUid, ...snap.data()});
+        }
+        const html = `
+            <div class="account-card">
+                <h3><i class="fas fa-user"></i> ${userProfile.name || "User"} (ID: ${userProfile.userIdNum || 'N/A'})</h3>
+                <p>📧 ${currentUserObj.email}</p>
+                <div style="margin: 1rem 0"><button id="showRankBtn">🏆 View Rankings</button></div>
+                <h4>➕ Add Friend</h4>
+                <div class="form-group"><input type="text" id="searchFriendInput" placeholder="Search by name or ID"></div>
+                <button id="searchFriendBtn">Search</button>
+                <div id="searchResult"></div>
+                <h4>📨 Friend Requests (${pendingRequests.length})</h4>
+                <div id="pendingRequestsList">${pendingUsers.map(u => `<div class="friend-item">${u.name} (${u.userIdNum}) <button class="small-btn" data-accept="${u.uid}">Accept</button></div>`).join('') || '<p>No pending requests</p>'}</div>
+                <h4>👥 My Friends (${friendsData.length})</h4>
+                <div>${friendsData.map(f => `<div class="friend-item">${f.name} (${f.userIdNum})</div>`).join('') || '<p>No friends yet</p>'}</div>
+                <button id="logoutBtn" style="background:#ef4444; margin-top:1rem">Logout</button>
+            </div>
+        `;
+        document.getElementById("mainView").innerHTML = html;
+        
+        document.getElementById("searchFriendBtn")?.addEventListener('click', async () => {
+            const queryVal = document.getElementById("searchFriendInput").value.trim();
+            if(!queryVal) return;
+            const usersRef = collection(db, "users");
+            let q = query(usersRef, where("name", "==", queryVal));
+            let snapshot = await getDocs(q);
+            let results = [];
+            snapshot.forEach(d => results.push({uid:d.id, ...d.data()}));
+            if(results.length === 0 && !isNaN(parseInt(queryVal))) {
+                q = query(usersRef, where("userIdNum", "==", parseInt(queryVal)));
+                snapshot = await getDocs(q);
+                results = [];
+                snapshot.forEach(d => results.push({uid:d.id, ...d.data()}));
+            }
+            const resultDiv = document.getElementById("searchResult");
+            if(results.length === 0) resultDiv.innerHTML = "<p>User not found</p>";
+            else resultDiv.innerHTML = results.map(u => `<div class="friend-item">${u.name} (${u.userIdNum}) <button class="small-btn addFriendBtn" data-uid="${u.uid}">Add Friend</button></div>`).join('');
+            document.querySelectorAll('.addFriendBtn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const targetUid = btn.getAttribute('data-uid');
+                    if(targetUid === currentUserObj.uid) return showToast("Cannot add yourself");
+                    const targetRef = doc(db, "users", targetUid);
+                    await updateDoc(targetRef, { friendRequests: arrayUnion(currentUserObj.uid) });
+                    showToast("Friend request sent");
+                });
+            });
+        });
+        
+        document.querySelectorAll('[data-accept]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const reqUid = btn.getAttribute('data-accept');
+                const userRef = doc(db, "users", currentUserObj.uid);
+                await updateDoc(userRef, { 
+                    friendRequests: arrayRemove(reqUid), 
+                    friends: arrayUnion(reqUid) 
+                });
+                const reqUserRef = doc(db, "users", reqUid);
+                await updateDoc(reqUserRef, { friends: arrayUnion(currentUserObj.uid) });
+                showToast("Friend added!");
+                renderAccountView();
+            });
+        });
+        
+        document.getElementById("showRankBtn")?.addEventListener('click', () => showRankingModal());
+        document.getElementById("logoutBtn")?.addEventListener('click', () => { auth.signOut(); location.reload(); });
+    }
+
+    async function showRankingModal() {
+        if(!userProfile) return;
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, orderBy("score", "desc"), limit(50));
+        const snapshot = await getDocs(q);
+        let globalRanks = [];
+        snapshot.forEach(doc => globalRanks.push({uid:doc.id, ...doc.data()}));
+        const friendIds = userProfile.friends || [];
+        let friendRanks = globalRanks.filter(u => friendIds.includes(u.uid) || u.uid === currentUserObj.uid);
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>🌍 World Ranking</h3>
+                <table class="rank-table">
+                    <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+                    ${globalRanks.slice(0,20).map((u,idx) => `<tr><td>${idx+1}</td><td>${u.name}</td><td>${u.score||0}</td></tr>`).join('')}
+                </table>
+                <h3>👥 Friend Ranking</h3>
+                <table class="rank-table">
+                    <tr><th>Name</th><th>Score</th></tr>
+                    ${friendRanks.sort((a,b)=>(b.score||0)-(a.score||0)).map(u => `<tr><td>${u.name}</td><td>${u.score||0}</td></tr>`).join('')}
+                </table>
+                <button id="closeRankModal">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById("closeRankModal")?.addEventListener('click', () => modal.remove());
+    }
+
+    async function renderRankView() {
+        if (!userProfile) {
+            showToast("Please login to view rankings");
+            return;
+        }
+        await showRankingModal();
+        // After closing modal, stay on same view but we can keep account view
+        renderAccountView();
+    }
+
+    function renderAuthScreen() {
+        document.getElementById("mainView").innerHTML = `
+            <div class="account-card">
+                <h2>📖 Welcome to June English</h2>
+                <div class="form-group"><input type="email" id="email" placeholder="Email"></div>
+                <div class="form-group"><input type="password" id="password" placeholder="Password"></div>
+                <div class="form-group"><input type="text" id="displayName" placeholder="Display Name (for registration)"></div>
+                <button id="loginBtn">Login</button>
+                <button id="registerBtn">Register</button>
+                <button id="forgotBtn">Forgot Password?</button>
+            </div>
+        `;
+        document.getElementById("loginBtn")?.addEventListener('click', async () => {
+            const email = document.getElementById("email").value;
+            const pwd = document.getElementById("password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pwd);
+                showToast("Login successful!");
+            } catch(e) { 
+                showToast(e.message); 
             }
         });
-
-        // 测验逻辑
-        window.startQuiz = async (lvl) => {
-            // 修正后的 GitHub URL
-            const url = `https://juneenglish07-hub.github.io/juneenglish07-hub.github.io/${lvl}.json`;
+        document.getElementById("registerBtn")?.addEventListener('click', async () => {
+            const email = document.getElementById("email").value;
+            const pwd = document.getElementById("password").value;
+            const name = document.getElementById("displayName").value;
+            if(!name) return showToast("Please enter a display name");
             try {
-                const res = await fetch(url);
-                pool = await res.json();
-                document.getElementById('level-selector').classList.add('hidden');
-                document.getElementById('quiz-area').classList.remove('hidden');
-                document.getElementById('quiz-level-tag').innerText = lvl;
-                loadQuestion();
-            } catch (e) {
-                alert("词库加载失败，请检查网络或路径: " + url);
-            }
-        };
-
-        function loadQuestion() {
-            const target = pool[Math.floor(Math.random() * pool.length)];
-            document.getElementById('question-word').innerText = target.en;
-            const getT = (o) => currentLang === 'cn' ? o.cn : o.ms;
-            let opts = [{ text: getT(target), correct: true }];
-            while(opts.length < 4) {
-                let r = pool[Math.floor(Math.random()*pool.length)];
-                if(!opts.find(o => o.text === getT(r))) opts.push({ text: getT(r), correct: false });
-            }
-            opts.sort(() => Math.random() - 0.5);
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = '';
-            opts.forEach(o => {
-                const b = document.createElement('button');
-                b.className = "w-full p-4 bg-white border-2 border-gray-100 rounded-2xl text-left hover:border-blue-500 font-medium active:scale-95 transition shadow-sm";
-                b.innerText = o.text;
-                b.onclick = () => handleAnswer(o.correct);
-                grid.appendChild(b);
-            });
-        }
-
-        window.handleAnswer = async (correct) => {
-            let score = correct === true ? 5 : (correct === false ? -2 : 0);
-            if(auth.currentUser) {
-                const userRef = doc(db, "users", auth.currentUser.uid);
-                await updateDoc(userRef, { points: increment(score) });
-                userData.points += score;
-                document.getElementById('display-points').innerText = userData.points;
-            }
-            loadQuestion();
-        };
-
-        window.exitQuiz = () => {
-            document.getElementById('level-selector').classList.remove('hidden');
-            document.getElementById('quiz-area').classList.add('hidden');
-        };
-
-        // 排行榜逻辑
-        async function loadWorldRanking() {
-            const content = document.getElementById('rank-content');
-            content.innerHTML = '<div class="text-center py-10 text-gray-400 italic">正在计算实时排名...</div>';
-            
-            try {
-                const q = query(collection(db, "users"), orderBy("points", "desc"), limit(10));
-                const snap = await getDocs(q);
-                content.innerHTML = '';
-                
-                let i = 1;
-                snap.forEach(userDoc => {
-                    const data = userDoc.data();
-                    const isMe = auth.currentUser && auth.currentUser.uid === data.uid;
-                    const item = document.createElement('div');
-                    item.className = `flex justify-between items-center p-4 rounded-2xl border ${isMe ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`;
-                    item.innerHTML = `
-                        <div class="flex items-center gap-4">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full font-black ${i <= 3 ? 'rank-gold text-white' : 'bg-gray-100 text-gray-400'}">${i}</span>
-                            <span class="font-bold text-gray-700">${data.name}</span>
-                        </div>
-                        <span class="font-black text-blue-600">${data.points} pts</span>
-                    `;
-                    content.appendChild(item);
-                    i++;
+                const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+                await updateProfile(cred.user, { displayName: name });
+                const userIdNum = 100000 + Math.floor(Math.random() * 900000);
+                await setDoc(doc(db, "users", cred.user.uid), { 
+                    name: name, 
+                    userIdNum: userIdNum, 
+                    score: 0, 
+                    progress: {}, 
+                    friends: [], 
+                    friendRequests: [] 
                 });
-
-                if(auth.currentUser) {
-                    document.getElementById('my-rank-pos').classList.remove('hidden');
-                    document.getElementById('my-pts-display').innerText = `${userData.points} pts`;
-                }
-            } catch (e) {
-                content.innerHTML = '<div class="text-red-400 text-center">无法加载排名，请稍后重试。</div>';
+                showToast("Registration successful!");
+            } catch(e) { 
+                showToast(e.message); 
             }
-        }
+        });
+        document.getElementById("forgotBtn")?.addEventListener('click', async () => {
+            const email = document.getElementById("email").value;
+            if(!email) return showToast("Please enter your email");
+            await sendPasswordResetEmail(auth, email);
+            showToast("Password reset email sent (check spam folder)");
+        });
+    }
 
-        window.switchRank = (type) => {
-            const worldBtn = document.getElementById('tab-world');
-            const friendBtn = document.getElementById('tab-friends');
-            if(type === 'world') {
-                worldBtn.className = "pb-2 px-4 border-b-2 border-blue-600 font-bold text-blue-600";
-                friendBtn.className = "pb-2 px-4 border-b-2 border-transparent text-gray-400 font-bold";
-                loadWorldRanking();
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const nav = btn.getAttribute('data-nav');
+            currentNav = nav;
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (!userProfile && nav !== 'main') {
+                showToast("Please login first");
+                return;
+            }
+            
+            if (nav === 'main') {
+                renderMainLayout();
+            } else if (nav === 'rank') {
+                await renderRankView();
+            } else if (nav === 'account') {
+                await renderAccountView();
+            }
+        });
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+        if(user) {
+            currentUserObj = user;
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if(userDoc.exists()) {
+                userProfile = userDoc.data();
             } else {
-                worldBtn.className = "pb-2 px-4 border-b-2 border-transparent text-gray-400 font-bold";
-                friendBtn.className = "pb-2 px-4 border-b-2 border-blue-600 font-bold text-blue-600";
-                document.getElementById('rank-content').innerHTML = '<div class="text-center py-10 text-gray-400">目前暂无好友动态</div>';
+                userProfile = { 
+                    name: user.displayName || "User", 
+                    userIdNum: 100000 + Math.floor(Math.random() * 900000), 
+                    score: 0, 
+                    progress: {}, 
+                    friends: [], 
+                    friendRequests: [] 
+                };
+                await setDoc(doc(db, "users", user.uid), userProfile);
             }
-        };
-
-        // 账户交互
-        document.getElementById('btn-login').onclick = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(err => alert("登录失败: " + err.message));
-        };
-
-        document.getElementById('btn-register').onclick = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            createUserWithEmailAndPassword(auth, e, p).then(() => alert("欢迎加入！")).catch(err => alert(err.message));
-        };
-
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-        document.getElementById('lang-setting').onchange = async (e) => {
-            currentLang = e.target.value;
-            if(auth.currentUser) await updateDoc(doc(db, "users", auth.currentUser.uid), { lang: currentLang });
-        };
-    </script>
+            renderMainLayout();
+            if(!currentQuizActive) await loadLevelAndStart("C2");
+            document.querySelector('.nav-item[data-nav="main"]').classList.add('active');
+        } else {
+            currentUserObj = null;
+            userProfile = null;
+            currentQuizActive = false;
+            renderMainLayout();
+            renderAuthScreen();
+            document.querySelector('.nav-item[data-nav="main"]').classList.add('active');
+        }
+    });
+</script>
 </body>
 </html>
